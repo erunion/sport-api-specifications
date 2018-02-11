@@ -1,0 +1,3160 @@
+openapi: "3.0.0"
+info:
+  title: NHL API
+  version: "1.0.0"
+  description: Documenting the publicly accessible portions of the NHL API.
+  contact:
+    name: NHL API documentation
+    url: https://github.com/erunion/sport-api-specifications
+tags:
+  - name: conferences
+  - name: divisions
+  - name: draft
+  - name: games
+  - name: players
+  - name: schedule
+  - name: standings
+  - name: stats
+  - name: teams
+servers:
+  - url: https://statsapi.web.nhl.com/api/v1
+paths:
+  /conferences:
+    get:
+      summary: Get all current NHL conferences.
+      description: This only retrieves active conferences. For inactive conferences, use `/conferences/{id}`.
+      operationId: getConferences
+      tags:
+        - conferences
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conferences"
+        404:
+          $ref: "#/components/responses/Error"
+  /conferences/{id}:
+    get:
+      summary: Get an NHL conference.
+      description: You can use this to also retrieve inactive conferences. For example, the ID for the World Cup of Hockey is `7`.
+      operationId: getConference
+      tags:
+        - conferences
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the conference.
+          schema:
+            type: number
+            example: 5
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Division"
+        404:
+          $ref: "#/components/responses/Error"
+  /divisions:
+    get:
+      summary: Get all current NHL divisions.
+      description: This only retrieves active divisions. For inactive divisions, use `/divisions/{id}`.
+      operationId: getDivisions
+      tags:
+        - divisions
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Divisions"
+        404:
+          $ref: "#/components/responses/Error"
+  /divisions/{id}:
+    get:
+      summary: Get an NHL division.
+      description: You can use this to also retrieve inactive divisions. For example, the ID for the old Patrick division is `13`.
+      operationId: getDivision
+      tags:
+        - divisions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the division.
+          schema:
+            type: number
+            example: 15
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Division"
+        404:
+          $ref: "#/components/responses/Error"
+  /draft:
+    get:
+      summary: Get round-by-round data for current year's NHL Entry Draft.
+      operationId: getDraft
+      tags:
+        - draft
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Draft"
+        404:
+          $ref: "#/components/responses/Error"
+  /draft/{year}:
+    get:
+      summary: Get round-by-round data for a specific year's NHL Entry Draft.
+      operationId: getDraftByYear
+      tags:
+        - draft
+      parameters:
+        - name: year
+          in: path
+          required: true
+          description: The draft year.
+          schema:
+            type: number
+            pattern: ^\d{4}$
+            example: 2018
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Draft"
+        404:
+          $ref: "#/components/responses/Error"
+  /draft/prospects:
+    get:
+      summary: Get all NHL Entry Draft prospects.
+      description: Be forewarned that this endpoint returns a **lot** of data and there does not appear to be a way to paginate results.
+      operationId: getDraftProspects
+      tags:
+        - draft
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DraftProspects"
+        404:
+          $ref: "#/components/responses/Error"
+  /draft/prospects/{id}:
+    get:
+      summary: Get an NHL Entry Draft prospect.
+      operationId: getDraftProspect
+      tags:
+        - draft
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The prospect ID.
+          schema:
+            type: number
+            example: 65242
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DraftProspects"
+        404:
+          $ref: "#/components/responses/Error"
+  /game/{id}/boxscore:
+    get:
+      summary: Get the boxscore for an NHL game.
+      description: If you want detailed play information, you should use `/game/{id}/feed/live` or `/game/{id}/feed/live/diffPatch`.
+      operationId: getGameBoxscore
+      tags:
+        - games
+      parameters:
+        - $ref: '#/components/parameters/gameId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameBoxscores"
+        404:
+          $ref: "#/components/responses/Error"
+  /game/{id}/content:
+    get:
+      summary: Get editorials, video replays and photo highlights for an NHL game.
+      operationId: getGameContent
+      tags:
+        - games
+      parameters:
+        - $ref: '#/components/parameters/gameId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameContent"
+        404:
+          $ref: "#/components/responses/Error"
+  /game/{id}/feed/live:
+    get:
+      summary: Get all available data for an NHL game.
+      description: This contains all data related to a game, from the boxscore, to play data and even on-ice coordinates. Be forewarned that, depending on the game, this endpoint can return a **lot** of data.
+      operationId: getGame
+      tags:
+        - games
+      parameters:
+        - $ref: '#/components/parameters/gameId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+        404:
+          $ref: "#/components/responses/Error"
+  /game/{id}/feed/live/diffPatch:
+    get:
+      summary: Get all available data for an NHL game after a specific time.
+      description: You can use this to return a small subset of data relating to game.
+      operationId: getGameDiff
+      tags:
+        - games
+      parameters:
+        - $ref: '#/components/parameters/gameId'
+        - name: startTimeCode
+          in: query
+          required: true
+          description: The prospect ID.
+          schema:
+            type: string
+            pattern: ^(\d{8})_(\d{4})$
+            example: "20180210_0900"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+        404:
+          $ref: "#/components/responses/Error"
+  /people/{id}:
+    get:
+      summary: Get an NHL player.
+      operationId: getPlayer
+      tags:
+        - players
+      parameters:
+        - $ref: "#/components/parameters/playerId"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Players"
+        404:
+          $ref: "#/components/responses/Error"
+  /people/{id}/stats:
+    get:
+      summary: Get specific statistics for an NHL player.
+      operationId: getPlayerStats
+      tags:
+        - players
+      parameters:
+        - $ref: "#/components/parameters/playerId"
+        - name: stats
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - "homeAndAway"
+              - "byDayOfWeek"
+              - "byMonth"
+              - "goalsByGameSituation"
+              - "onPaceRegularSeason"
+              - "regularSeasonStatRankings"
+              - "statsSingleSeason"
+              - "vsConference"
+              - "vsDivision"
+              - "vsTeam"
+              - "winLoss"
+          description: >
+            Stats explanations:
+              * `homeAndAway` - Provides a split between home and away games.
+              * `byMonth` - Monthly split of stats.
+              * `byDayOfWeek` - Split done by day of the week.
+              * `goalsByGameSituation` - Shows number on when goals for a player happened like how many in the shootout, how many in each period, etc.
+              * `onPaceRegularSeason` - This only works with the current in-progress season and shows projected totals based on current onPaceRegularSeason.
+              * `regularSeasonStatRankings` - Returns where someone stands vs the rest of the league for a specific regularSeasonStatRankings
+              * `statsSingleSeason` - Obtains single season statistics for a player.
+              * `vsConference` - Conference stats split.
+              * `vsDivision` - Division stats split.
+              * `vsTeam` - Conference stats split.
+              * `winLoss` - Very similar to the previous modifier except it provides the W/L/OT split instead of Home and Away.
+        - $ref: '#/components/parameters/season'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerStats"
+        404:
+          $ref: "#/components/responses/Error"
+  /schedule:
+    get:
+      summary: Get the NHL game schedule.
+      operationId: getSchedule
+      tags:
+        - schedule
+      parameters:
+        - name: expand
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "schedule.brodcasts"
+              - "schedule.linescore"
+              - "schedule.ticket"
+              - "team.schedule.previous"
+          description: >
+            Expand explanations:
+              * `schedule.brodcasts` - Shows the broadcasts of the game.
+              * `schedule.linescore` - Linescore for completed games.
+              * `schedule.ticket` - Provides the different places to buy tickets for the upcoming games.
+              * `team.schedule.previous` - Same as above but for the last game played.
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: string
+            example: 28
+          description: Limit results to a specific team. Team ids can be found through the teams endpoint
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2018-02-11"
+          description: Start date for the search.
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2018-02-18"
+          description: End date for the search.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Schedule"
+        404:
+          $ref: "#/components/responses/Error"
+  /standings:
+    get:
+      summary: Get NHL division standings.
+      operationId: getStandings
+      tags:
+        - standings
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Standings"
+        404:
+          $ref: "#/components/responses/Error"
+  /standings/{type}:
+    get:
+      summary: Get NHL standings for a specific standing type.
+      operationId: getStandingsByType
+      tags:
+        - standings
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - "byConference"
+              - "byDivision"
+              - "byLeague"
+              - "divisionLeaders"
+              - "postseason"
+              - "preseason"
+              - "regularSeason"
+              - "wildCard"
+              - "wildCardWithLeaders"
+          description: >
+            Standing types:
+              * `byConference` - Standings by Conference
+              * `byDivision` - Standings by Division
+              * `byLeague` - Standings by League
+              * `divisionLeaders` - Division Leader standings
+              * `postseason` - Postseason Standings
+              * `preseason` - Preseason Standings
+              * `regularSeason` - Regular Season Standings
+              * `wildCard` - Wild card standings
+              * `wildCardWithLeaders` - Wild card standings with Division Leaders
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Standings"
+        404:
+          $ref: "#/components/responses/Error"
+  /standingsTypes:
+    get:
+      summary: Get all available NHL standing types.
+      operationId: getStandingTypes
+      tags:
+        - standings
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandingTypes"
+        404:
+          $ref: "#/components/responses/Error"
+  /statTypes:
+    get:
+      summary: Get all available NHL statistic types.
+      operationId: getStatTypes
+      tags:
+        - stats
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatTypes"
+        404:
+          $ref: "#/components/responses/Error"
+  /teams:
+    get:
+      summary: Get all NHL teams.
+      operationId: getTeams
+      tags:
+        - teams
+      parameters:
+        - $ref: '#/components/parameters/teamExpand'
+        - $ref: '#/components/parameters/season'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Teams"
+        404:
+          $ref: "#/components/responses/Error"
+  /teams/{id}:
+    get:
+      summary: Get an NHL team.
+      operationId: getTeam
+      tags:
+        - teams
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the team.
+          schema:
+            type: number
+            example: 28
+        - $ref: '#/components/parameters/teamExpand'
+        - $ref: '#/components/parameters/season'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        404:
+          $ref: "#/components/responses/Error"
+  /teams/{id}/roster:
+    get:
+      summary: Get an NHL team's roster.
+      operationId: getTeamRoster
+      tags:
+        - teams
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the team.
+          schema:
+            type: number
+            example: 28
+        - $ref: '#/components/parameters/season'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rosters"
+        404:
+          $ref: "#/components/responses/Error"
+  /teams/{id}/stats:
+    get:
+      summary: Get all statistics for an NHL team.
+      operationId: getTeamStats
+      tags:
+        - teams
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the team.
+          schema:
+            type: number
+            example: 28
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamStats"
+        404:
+          $ref: "#/components/responses/Error"
+components:
+  parameters:
+    gameId:
+      name: id
+      in: path
+      required: true
+      description: The ID of the game. The first 4 digits identify the season of the game (ie. 2017 for the 2017-2018 season). The next 2 digits give the type of game, where 01 = preseason, 02 = regular season, 03 = playoffs, 04 = all-star. The final 4 digits identify the specific game number. For regular season and preseason games, this ranges from 0001 to the number of games played. (1271 for seasons with 31 teams (2017 and onwards) and 1230 for seasons with 30 teams). For playoff games, the 2nd digit of the specific number gives the round of the playoffs, the 3rd digit specifies the matchup, and the 4th digit specifies the game (out of 7).
+      schema:
+        type: number
+        example: 2017020851
+    playerId:
+      name: id
+      in: path
+      required: true
+      description: The ID of the player.
+      schema:
+        type: number
+        example: 8466138
+    season:
+      name: season
+      in: query
+      description: Return a team's specific season.
+      required: false
+      schema:
+        type: number
+        pattern: ^\d{8}$
+        example: 20172018
+    teamExpand:
+      name: expand
+      in: query
+      description: Expand your response for some additional data.
+      required: false
+      schema:
+        type: string
+        enum:
+          - "team.roster"
+          - "team.schedule.next"
+          - "team.schedule.previous"
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Conference:
+      properties:
+        id:
+          type: number
+          example: 5
+        name:
+          type: string
+          enum:
+            - "Eastern"
+            - "Western"
+            - "World Cup of Hockey"
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/conferences/5"
+        abbreviation:
+          type: string
+          enum:
+            - "E"
+            - "W"
+            - "WCH"
+        shortName:
+          type: string
+          enum:
+            - "East"
+            - "West"
+            - "WCup"
+        active:
+          type: boolean
+    Conferences:
+      properties:
+        copyright:
+          type: string
+        teams:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/Conference"
+    Division:
+      properties:
+        id:
+          type: number
+          example: 15
+        name:
+          type: string
+          example: "Pacific"
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/divisions/15"
+        abbreviation:
+          type: string
+          example: "P"
+        conference:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 5
+            name:
+              type: string
+              example: "Western"
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/conferences/5"
+        active:
+          type: boolean
+    Divisions:
+      properties:
+        copyright:
+          type: string
+        teams:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/Division"
+    Draft:
+      properties:
+        copyright:
+          type: string
+        drafts:
+          type: array
+          items:
+            type: object
+            properties:
+              draftYear:
+                type: number
+                example: 2017
+              rounds:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    roundNumber:
+                      type: number
+                      example: 1
+                    round:
+                      type: number
+                      example: "1"
+                    picks:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          year:
+                            type: number
+                            example: 2017
+                          round:
+                            type: string
+                            example: "1"
+                          pickOverall:
+                            type: number
+                            example: 1
+                          pickInRound:
+                            type: number
+                            example: 1
+                          team:
+                            type: object
+                            properties:
+                              id:
+                                type: number
+                                example: 1
+                              name:
+                                type: string
+                                example: "New Jersey Devils"
+                              link:
+                                type: string
+                                format: uri
+                                example: "/api/v1/teams/1"
+                          prospect:
+                            type: object
+                            properties:
+                              id:
+                                type: number
+                                example: 65242
+                              fullName:
+                                type: string
+                                example: "Nico Hischier"
+                              link:
+                                type: string
+                                format: uri
+                                example: "/api/v1/draft/prospects/65242"
+    DraftProspect:
+      properties:
+        id:
+          type: number
+          example: 65242
+        fullName:
+          type: string
+          example: "Nico Hischier"
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/draft/prospects/65242"
+        firstName:
+          type: string
+          example: "Nico"
+        lastName:
+          type: string
+          example: "Hischier"
+        birthDate:
+          type: string
+          format: date
+          example: "1999-01-04"
+        birthCity:
+          type: string
+          example: "Naters"
+        birthCountry:
+          type: string
+          example: "CHE"
+        nationality:
+          type: string
+          example: "CHE"
+        height:
+          type: string
+          example: "6' 2\""
+        weight:
+          type: number
+          example: 179
+        shootsCatches:
+          type: string
+          example: "L"
+        primaryPosition:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "C"
+            name:
+              type: string
+              example: "Center"
+            type:
+              type: string
+              example: "Forward"
+            abbreviation:
+              type: string
+              example: "C"
+        prospectCategory:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            shortName:
+              type: string
+              example: "NA Skater"
+            name:
+              type: string
+              example: "North American Skater"
+        amateurTeam:
+          type: object
+          properties:
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/teams/null"
+        amateurLeague:
+          type: object
+          properties:
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/league/null"
+        ranks:
+          type: object
+    DraftProspects:
+      properties:
+        copyright:
+          type: string
+        prospects:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/DraftProspect"
+    Error:
+      properties:
+        messageNumber:
+          type: number
+          example: 10
+        message:
+          type: string
+          example: "Object not found"
+    Franchise:
+      properties:
+        id:
+          type: number
+          example: 29
+        name:
+          type: string
+          example: "Sharks"
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/franchises/29"
+    Game:
+      properties:
+        copyright:
+          type: string
+        gamePk:
+          type: number
+          example: 2017020851
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/game/2017020851/feed/live"
+        metaData:
+          type: object
+          properties:
+            wait:
+              type: number
+              example: 10
+            timeStamp:
+              type: string
+              example: "20180211_054345"
+        gameData:
+          type: object
+          properties:
+            game:
+              type: object
+              properties:
+                pk:
+                  type: number
+                  example: 2017020851
+                season:
+                  type: string
+                  example: "20172018"
+                type:
+                  type: string
+                  example: "R"
+            datetime:
+              type: object
+              properties:
+                dateTime:
+                  type: string
+                  format: date-time
+                  example: "2018-02-11T03:00:00Z"
+                endDateTime:
+                  type: string
+                  format: date-time
+                  example: "2018-02-11T05:30:42Z"
+            status:
+              type: object
+              properties:
+                abstractGameState:
+                  type: string
+                  example: "Final"
+                codedGameState:
+                  type: string
+                  example: "7"
+                detailedState:
+                  type: string
+                  example: "Final"
+                statusCode:
+                  type: string
+                  example: "7"
+                startTimeTBD:
+                  type: boolean
+            teams:
+              type: object
+              properties:
+                away:
+                  type: object
+                  $ref: "#/components/schemas/Team"
+                home:
+                  type: object
+                  $ref: "#/components/schemas/Team"
+            players: # this is actually an associative array with keys like `ID8471709`
+              type: object
+              $ref: "#/components/schemas/Player"
+            venue:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "SAP Center at San Jose"
+                link:
+                  type: string
+                  format: uri
+                  example: "/api/v1/venues/null"
+        liveData:
+          type: object
+          properties:
+            plays:
+              type: object
+              properties:
+                allPlays:
+                  type: array
+                  items:
+                    type: object
+                    $ref: "#/components/schemas/GamePlay"
+                scoringPlays:
+                  type: array
+                  items:
+                    type: number
+                penaltyPlays:
+                  type: array
+                  items:
+                    type: number
+                playsByPeriod:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      startIndex:
+                        type: number
+                        example: 0
+                      plays:
+                        type: array
+                        items:
+                          type: number
+                      endIndex:
+                        type: number
+                        example: 114
+                currentPlay:
+                  type: object
+                  $ref: "#/components/schemas/GamePlay"
+            linescore:
+              type: object
+              $ref: "#/components/schemas/GameLinescore"
+            boxscore:
+              type: object
+              $ref: "#/components/schemas/GameBoxscore"
+            decisions:
+              type: object
+              properties:
+                winner:
+                  type: object
+                  $ref: "#/components/schemas/GameDecisionPlayer"
+                loser:
+                  type: object
+                  $ref: "#/components/schemas/GameDecisionPlayer"
+                firstStar:
+                  type: object
+                  $ref: "#/components/schemas/GameDecisionPlayer"
+                secondStar:
+                  type: object
+                  $ref: "#/components/schemas/GameDecisionPlayer"
+                thirdStar:
+                  type: object
+                  $ref: "#/components/schemas/GameDecisionPlayer"
+    GameBoxscore:
+      properties:
+        teams:
+          type: object
+          properties:
+            away:
+              type: object
+              $ref: "#/components/schemas/GameBoxscoreTeam"
+            home:
+              type: object
+              $ref: "#/components/schemas/GameBoxscoreTeam"
+        officials:
+          type: array
+          items:
+            $ref: "#/components/schemas/GameOfficial"
+    GameBoxscores:
+      allOf:
+        - type: object
+          properties:
+            copyright:
+              type: string
+        - $ref: "#/components/schemas/GameBoxscore"
+    GameBoxscoreTeam:
+      properties:
+        team:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 28
+            name:
+              type: string
+              example: "San Jose Sharks"
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/teams/28"
+            abbreviation:
+              type: string
+              example: "SJS"
+            triCode:
+              type: string
+              example: "SJS"
+        teamStats:
+          type: object
+          properties:
+            teamSkaterStats:
+              type: object
+              properties:
+                goals:
+                  type: number
+                  example: 6
+                pim:
+                  type: number
+                  example: 6
+                shots:
+                  type: number
+                  example: 30
+                powerPlayPercentage:
+                  type: string
+                  example: "0.0"
+                powerPlayGoals:
+                  type: number
+                  example: 0
+                powerPlayOpportunities:
+                  type: number
+                  example: 1
+                faceOffWinPercentage:
+                  type: string
+                  example: "59.3"
+                blocked:
+                  type: number
+                  example: 21
+                takeaways:
+                  type: number
+                  example: 9
+                giveaways:
+                  type: number
+                  example: 6
+                hits:
+                  type: number
+                  example: 15
+        players:
+          type: object
+          properties:
+            person:
+              type: object
+              properties:
+                id:
+                  type: number
+                  example: 8471709
+                fullName:
+                  type: string
+                  example: "Marc-Edouard Vlasic"
+                link:
+                  type: string
+                  format: uri
+                  example: "/api/v1/people/8471709"
+                shootsCatches:
+                  type: string
+                  example: "L"
+                rosterStatus:
+                  type: string
+                  example: "Y"
+            jerseyNumber:
+              type: string
+              example: "44"
+            position:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: "D"
+                name:
+                  type: string
+                  example: "Defenseman"
+                type:
+                  type: string
+                  example: "Defenseman"
+                abbreviation:
+                  type: string
+                  example: "D"
+            stats:
+              type: object
+              properties:
+                skaterStats:
+                  type: object
+                  properties:
+                    timeOnIce:
+                      type: string
+                      example: "23:04"
+                    assists:
+                      type: number
+                      example: 0
+                    goals:
+                      type: number
+                      example: 0
+                    shots:
+                      type: number
+                      example: 2
+                    hits:
+                      type: number
+                      example: 0
+                    powerPlayGoals:
+                      type: number
+                      example: 0
+                    powerPlayAssists:
+                      type: number
+                      example: 0
+                    penaltyMinutes:
+                      type: number
+                      example: 0
+                    faceOffWins:
+                      type: number
+                      example: 0
+                    faceoffTaken:
+                      type: number
+                      example: 0
+                    takeaways:
+                      type: number
+                      example: 0
+                    giveaways:
+                      type: number
+                      example: 1
+                    shortHandedGoals:
+                      type: number
+                      example: 0
+                    shortHandedAssists:
+                      type: number
+                      example: 0
+                    blocked:
+                      type: number
+                      example: 0
+                    plusMinus:
+                      type: number
+                      example: 1
+                    evenTimeOnIce:
+                      type: string
+                      example: "18:12"
+                    powerPlayTimeOnIce:
+                      type: string
+                      example: "1:07"
+                    shortHandedTimeOnIce:
+                      type: string
+                      example: "3:45"
+        goalies:
+          type: array
+          items:
+            type: number
+        skaters:
+          type: array
+          items:
+            type: number
+        onIce:
+          type: array
+          items:
+            type: number
+        onIcePlus:
+          type: array
+          items:
+            type: object
+            properties:
+              playerId:
+                type: number
+                example: 8477180
+              shiftDuration:
+                type: number
+                example: 458
+              stamina:
+                type: number
+                example: 33
+        scratches:
+          type: array
+          items:
+            type: number
+        penaltyBox:
+          type: array
+          items:
+            type: number
+        coaches:
+          type: array
+          items:
+            type: object
+            properties:
+              person:
+                type: object
+                properties:
+                  fullName:
+                    type: string
+                    example: "Peter DeBoer"
+                  link:
+                    type: string
+                    format: uri
+                    example: "/api/v1/people/null"
+              position:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "HC"
+                  name:
+                    type: string
+                    example: "Head Coach"
+                  type:
+                    type: string
+                    example: "Head Coach"
+                  abbreviation:
+                    type: string
+                    example: "Head Coach"
+    GameContent:
+      properties:
+        copyright:
+          type: string
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/game/2017020851/content"
+        editorial:
+          type: object
+          properties:
+            preview:
+              type: object
+              $ref: "#/components/schemas/GameEditorials"
+            articles:
+              type: object
+              $ref: "#/components/schemas/GameEditorials"
+            recap:
+              type: object
+              $ref: "#/components/schemas/GameEditorials"
+        media:
+          type: object
+          properties:
+            epg:
+              type: array
+              items:
+                type: object
+                anyOf:
+                  - $ref: "#/components/schemas/GameMediaNHLTV"
+                  - $ref: "#/components/schemas/GameMediaAudio"
+                  - $ref: "#/components/schemas/GameHighlightType"
+            milestones:
+              type: object
+              properties:
+                title:
+                  type: string
+                  enum:
+                    - "Milestones"
+                streamStart:
+                  type: string
+                  format: date-time
+                  example: "2018-02-11T03:04:32+0000"
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                        example: "Broadcast Start"
+                      description:
+                        type: string
+                        example: "Broadcast Start"
+                      type:
+                        type: string
+                        enum:
+                          - "BROADCAST_START"
+                          - "BROADCAST_END"
+                          - "GOAL"
+                          - "PERIOD_END"
+                          - "PERIOD_START"
+                          - "SHOT"
+                      timeAbsolute:
+                        type: string
+                        format: date-time
+                        example: "2018-02-11T03:04:36+0000"
+                      timeOffset:
+                        type: string
+                        example: "4"
+                      period:
+                        type: string
+                        example: "1"
+                      statsEventId:
+                        type: string
+                        example: "10"
+                      teamId:
+                        type: string
+                        example: "28"
+                      playerId:
+                        type: string
+                        example: "8477046"
+                      periodTime:
+                        type: string
+                        example: "01:15"
+                      ordinalNum:
+                        type: string
+                        example: "1st"
+                      highlight:
+                        type: object
+                        $ref: "#/components/schemas/GameHighlight"
+        highlights:
+          type: object
+          properties:
+            scoreboard:
+              type: object
+              $ref: "#/components/schemas/GameHighlights"
+            gameCenter:
+              type: object
+              $ref: "#/components/schemas/GameHighlights"
+    GameEditorial:
+      properties:
+        type:
+          type: string
+          example: "article"
+        state:
+          type: string
+          example: "A"
+        date:
+          type: string
+          format: date-time
+          example: "2018-02-10T16:57:06-0500"
+        id:
+          type: string
+          example: "295823824"
+        headline:
+          type: string
+          example: "Oilers at Sharks preview"
+        subhead:
+          type: string
+          example: "Backups Montoya, Dell to start for Edmonton, San Jose"
+        seoTitle:
+          type: string
+          example: "Edmonton Oilers San Jose Sharks game preview"
+        seoDescription:
+          type: string
+          example: "Backup goaltender Aaron Dell will make his 19th start of the season when the San Jose Sharks play the Edmonton Oilers at SAP Center on Saturday in the first of back-to-back games."
+        seoKeywords:
+          type: string
+          example: "Game preview, Edmonton Oilers, San Jose Sharks, Aaron Dell, Al Montoya, Feb 10"
+        slug:
+          type: string
+          example: "edmonton-oilers-san-jose-sharks-game-preview"
+        commenting:
+          type: boolean
+        tagline:
+          type: string
+        tokenData: # this is actually an associative array with keys like `token-EBDA2F0039BF4445D2C91`.
+          type: object
+          properties:
+            tokenGUID:
+              type: string
+              example: "token-EBDA2F0039BF4445D2C91"
+            type:
+              type: string
+              enum:
+                - "hyperLink"
+                - "playerCard"
+            id:
+              type: string
+              example: "8471709"
+            teamId:
+              type: string
+              example: "28"
+            name:
+              type: string
+              example: "Marc-Edouard Vlasic"
+            seoName:
+              type: string
+              example: "marc-edouard-vlasic"
+            href:
+              type: string
+              example: "https://www.nhl.com/player/keegan-lowe-8476397?season=20172018"
+            hrefMobile:
+              type: string
+              example: "https://www.nhl.com/player/keegan-lowe-8476397?season=20172018"
+        contributor:
+          type: object
+          properties:
+            contributors:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "Eric Gilmore"
+                  twitter:
+                    type: string
+            source:
+              type: string
+              example: "NHL.com Correspondent"
+        keywordsDisplay:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/GameEditorialKeyword"
+        keywordsAll:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/GameEditorialKeyword"
+        approval:
+          type: string
+        url:
+          type: string
+          example: "/news/edmonton-oilers-san-jose-sharks-game-preview/c-295823824?game_pk=2017020851"
+        dataURI:
+          type: string
+          example: "/nhl/id/v1/295823824/details/web-v1.json"
+        primaryKeyword:
+          type: object
+          $ref: "#/components/schemas/GameEditorialKeyword"
+        media:
+          type: object
+          properties:
+            type:
+              type: string
+              example: "photo"
+            image:
+              type: object
+              $ref: "#/components/schemas/Photo"
+        preview:
+          type: string
+          format: html
+          example: "<p><b>OILERS (23-26-4) at SHARKS (28-18-8)</b></p><p><b>10 p.m. ET; NBCSCA, CITY, SN360, SN, NHL.TV</b></p><p>&nbsp;</p><h5><b>The Game</b></h5><p>Backup goaltender <span class=\"token token-playerCard\" id=\"token-B36CCB71E81996298E792\">Aaron Dell</span> will make his 19th start of the season when the San Jose Sharks play the Edmonton Oilers at SAP Center on Saturday in the first of back-to-back games.</p>"
+    GameEditorialKeyword:
+      properties:
+          type:
+            type: string
+            enum:
+              - "bodyParagraphCount"
+              - "bodyWordCount"
+              - "clob_autoTagSkip_playerCards"
+              - "content"
+              - "embeddable"
+              - "gameId"
+              - "language"
+              - "playerId"
+              - "previewParagraphCount"
+              - "primaryTag"
+              - "previewWordCount"
+              - "shareable"
+              - "statsEventId"
+              - "teamFileCode"
+              - "teamId"
+          value:
+            type: string
+            example: "en"
+          displayName:
+            type: string
+            example: "English"
+    GameEditorials:
+      properties:
+        title:
+          type: string
+          example: "Preview"
+        topicList:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/GameEditorial"
+    GameHighlight:
+      properties:
+        type:
+          type: string
+          enum:
+            - "video"
+        id:
+          type: string
+          example: "57602103"
+        date:
+          type: string
+          format: date-time
+          example: "2018-02-10T22:00:00-0500"
+        title:
+          type: string
+          example: "Goodrow buries Hansen's pass"
+        blurb:
+          type: string
+          example: "EDM@SJS: Goodrow snaps Hansen's pass by Montoya"
+        description:
+          type: string
+          example: "Barclay Goodrow takes a drop pass from Jannik Hansen and whips a quick wrist shot past Al Montoya to give the Sharks a 3-0 lead in the 2nd"
+        duration:
+          type: string
+          example: "00:51"
+        authFlow:
+          type: boolean
+        mediaPlaybackId:
+          type: string
+          example: "57602103"
+        mediaState:
+          type: string
+          example: "MEDIA_ARCHIVE"
+        keywords:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/GameEditorialKeyword"
+        image:
+          type: object
+          $ref: "#/components/schemas/Photo"
+        playbacks:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                enum:
+                  - "FLASH_192K_320X180"
+                  - "FLASH_450K_400X224"
+                  - "FLASH_1200K_640X360"
+                  - "FLASH_1800K_960X540"
+                  - "HTTP_CLOUD_MOBILE"
+                  - "HTTP_CLOUD_TABLET"
+                  - "HTTP_CLOUD_TABLET_60"
+                  - "HTTP_CLOUD_WIRED"
+                  - "HTTP_CLOUD_WIRED_60"
+                  - "HTTP_CLOUD_WIRED_WEB"
+              width:
+                type: string
+                example: "960"
+              height:
+                type: string
+                example: "540"
+              url:
+                type: string
+                format: video
+                example: "http://md-akc.med.nhl.com/mp4/nhl/2018/02/11/ddec1fcc-3772-4769-a547-314de76c6c11/1518322152840/asset_1800k.mp4"
+    GameHighlights:
+      properties:
+        scoreboard:
+          type: object
+          $ref: "#/components/schemas/GameHighlightType"
+        gameCenter:
+          type: object
+          $ref: "#/components/schemas/GameHighlightType"
+    GameHighlightType:
+      properties:
+        title:
+          type: string
+          example: "Highlights"
+        topicList:
+          type: string
+          example: "293642378"
+        items:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/GameHighlight"
+    GamePeriod:
+      properties:
+        periodType:
+          type: string
+          example: "REGULAR"
+        startTime:
+          type: string
+          format: date-time
+          example: "2018-02-11T03:09:50Z"
+        endTime:
+          type: string
+          format: date-time
+          example: "2018-02-11T03:44:47Z"
+        num:
+          type: number
+          example: 1
+        ordinalNum:
+          type: string
+          example: "1st"
+        home:
+          type: object
+          properties:
+            goals:
+              type: number
+              example: 2
+            shotsOnGoal:
+              type: number
+              example: 14
+            rinkSide:
+              type: string
+              example: "left"
+        away:
+          type: object
+          properties:
+            goals:
+              type: number
+              example: 0
+            shotsOnGoal:
+              type: number
+              example: 9
+            rinkSide:
+              type: string
+              example: "right"
+    GameDecisionPlayer:
+      properties:
+        id:
+          type: number
+          example: 8477180
+        fullName:
+          type: string
+          example: "Aaron Dell"
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/people/8477180"
+    GameLinescore:
+      properties:
+        currentPeriod:
+          type: number
+          example: 3
+        currentPeriodOrdinal:
+          type: string
+          example: "3rd"
+        currentPeriodTimeRemaining:
+          type: string
+          example: "Final"
+        periods:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/GamePeriod"
+        shootoutInfo:
+          type: object
+          properties:
+            away:
+              type: object
+              properties:
+                scores:
+                  type: number
+                  example: 0
+                attempts:
+                  type: number
+                  example: 0
+            home:
+              type: object
+              properties:
+                scores:
+                  type: number
+                  example: 0
+                attempts:
+                  type: number
+                  example: 0
+        teams:
+          type: object
+          properties:
+            home:
+              type: object
+              $ref: "#/components/schemas/GameLinescoreTeam"
+            away:
+              type: object
+              $ref: "#/components/schemas/GameLinescoreTeam"
+        powerPlayStrength:
+          type: string
+          example: "Even"
+        hasShootout:
+          type: boolean
+        intermissionInfo:
+          type: object
+          properties:
+            intermissionTimeRemaining:
+              type: number
+              example: 0
+            intermissionTimeElapsed:
+              type: number
+              example: 0
+            inIntermission:
+              type: boolean
+        powerPlayInfo:
+          type: object
+          properties:
+            situationTimeRemaining:
+              type: number
+              example: 0
+            situationTimeElapsed:
+              type: number
+              example: 72
+            inSituation:
+              type: boolean
+    GameLinescoreTeam:
+      properties:
+        team:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 28
+            name:
+              type: string
+              example: "San Jose Sharks"
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/teams/28"
+            abbreviation:
+              type: string
+              example: "SJS"
+            triCode:
+              type: string
+              example: "SJS"
+        goals:
+          type: number
+          example: 6
+        shotsOnGoal:
+          type: number
+          example: 30
+        goaliePulled:
+          type: boolean
+        numSkaters:
+          type: number
+          example: 5
+        powerPlay:
+          type: boolean
+    GameMediaAudio:
+      properties:
+        title:
+          type: string
+          example: "Audio"
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              mediaState:
+                type: string
+                example: "MEDIA_DONE"
+              mediaPlaybackId:
+                type: string
+                example: "57463903"
+              mediaFeedType:
+                type: string
+                example: "HOME"
+              callLetters:
+                type: string
+                example: "KFOX"
+              eventId:
+                type: string
+                example: "221-1007449"
+              language:
+                type: string
+                example: "eng"
+              freeGame:
+                type: boolean
+              feedName:
+                type: string
+              gamePlus:
+                type: boolean
+    GameMediaNHLTV:
+      properties:
+        title:
+          type: string
+          example: "NHLTV"
+        platform:
+          type: string
+          example: "web"
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              guid:
+                type: string
+                example: "dbb39fa8-6679-4b22-a8c5-71eb5e39b462"
+              mediaState:
+                type: string
+                example: "MEDIA_ARCHIVE"
+              mediaPlaybackId:
+                type: string
+                example: "57463703"
+              mediaFeedType:
+                type: string
+                example: "HOME"
+              callLetters:
+                type: string
+                example: "NBCS-CA"
+              eventId:
+                type: string
+                example: "221-1007449"
+              language:
+                type: string
+                example: "eng"
+              freeGame:
+                type: boolean
+              feedName:
+                type: string
+              gamePlus:
+                type: boolean
+    GameOfficial:
+      properties:
+        official:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 2071
+            fullName:
+              type: string
+              example: "Tim Peel"
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/people/2071"
+        officialType:
+          type: string
+          enum:
+            - "Linesman"
+            - "Referee"
+    GamePlay:
+      properties:
+        players:
+          type: array
+          items:
+            type: object
+            properties:
+              player:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 8476881
+                  fullName:
+                    type: string
+                    example: "Tomas Hertl"
+                  link:
+                    type: string
+                    format: uri
+                    example: "/api/v1/people/8476881"
+              playerType:
+                type: string
+                example: "Winner"
+        result:
+          type: object
+          properties:
+            event:
+              type: string
+              example: "Game End"
+            eventCode:
+              type: string
+              example: "SJS505"
+            eventTypeId:
+              type: string
+              example: "GAME_END"
+            description:
+              type: string
+              example: "Game End"
+        about:
+          type: object
+          properties:
+            eventIdx:
+              type: number
+              example: 315
+            eventId:
+              type: number
+              example: 505
+            period:
+              type: number
+              example: 3
+            periodType:
+              type: string
+              example: "REGULAR"
+            ordinalNum:
+              type: string
+              example: "3rd"
+            periodTime:
+              type: string
+              example: "20:00"
+            periodTimeRemaining:
+              type: string
+              example: "00:00"
+            dateTime:
+              type: string
+              format: date-time
+              example: "2018-02-11T05:30:42Z"
+            goals:
+              type: object
+              properties:
+                away:
+                  type: number
+                  example: 4
+                home:
+                  type: number
+                  example: 6
+        coordinates:
+          type: object
+          properties:
+            x:
+              type: number
+              example: 0
+            y:
+              type: number
+              example: 0
+        team:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 28
+            name:
+              type: string
+              example: "San Jose Sharks"
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/teams/28"
+            triCode:
+              type: string
+              example: "SJS"
+    Photo:
+      properties:
+        title:
+          type: string
+        altText:
+          type: string
+        cuts: # this is actually an associative array with keys like `2568x1444`
+          type: object
+          properties:
+            aspectRatio:
+              type: string
+              example: "16:9"
+            width:
+              type: number
+              example: 2568
+            height:
+              type: number
+              example: 1444
+            src:
+              type: string
+              format: url
+              example: "https://nhl.bamcontent.com/images/photos/295824704/2568x1444/cut.jpg"
+            at2x:
+              type: string
+              format: url
+              example: "https://nhl.bamcontent.com/images/photos/295824704/2568x1444/cut.jpg"
+            at3x:
+              type: string
+              format: url
+              example: "https://nhl.bamcontent.com/images/photos/295824704/2568x1444/cut.jpg"
+    Player:
+      properties:
+        id:
+          type: number
+          example: 8466138
+        fullName:
+          type: string
+          example: "Joe Thornton"
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/people/8466138"
+        firstName:
+          type: string
+          example: "Joe"
+        lastName:
+          type: string
+          example: "Thornton"
+        primaryNumber:
+          type: string
+          example: "19"
+        birthDate:
+          type: string
+          format: date
+          example: "1979-07-02"
+        currentAge:
+          type: number
+          example: 38
+        birthCity:
+          type: string
+          example: "London"
+        birthStateProvince:
+          type: string
+          example: "ON"
+        birthCountry:
+          type: string
+          example: "CAN"
+        nationality:
+          type: string
+          example: "CAN"
+        height:
+          type: string
+          example: "6' 4\""
+        weight:
+          type: number
+          example: 220
+        active:
+          type: boolean
+        alternateCaptain:
+          type: boolean
+        captain:
+          type: boolean
+        rookie:
+          type: boolean
+        shootsCatches:
+          type: string
+          enum:
+            - "L"
+            - "R"
+        rosterStatus:
+          type: string
+          example: "I"
+        currentTeam:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 28
+            name:
+              type: string
+              example: "San Jose Sharks"
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/teams/28"
+        primaryPosition:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "C"
+            name:
+              type: string
+              example: "Center"
+            type:
+              type: string
+              example: "Forward"
+            abbreviation:
+              type: string
+              example: "C"
+    Players:
+      required:
+        - copyright
+        - people
+      properties:
+        copyright:
+          type: string
+        teams:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/Player"
+    PlayerStats:
+      properties:
+        copyright:
+          type: string
+        stats:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: object
+                properties:
+                  displayName:
+                    type: string
+                    enum:
+                      - "byDayOfWeek"
+                      - "byMonth"
+                      - "goalsByGameSituation"
+                      - "homeAndAway"
+                      - "onPaceRegularSeason"
+                      - "regularSeasonStatRankings"
+                      - "statsSingleSeason"
+                      - "vsConference"
+                      - "vsDivision"
+                      - "vsTeam"
+                      - "winLoss"
+              splits:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    season:
+                      type: string
+                      example: "20172018"
+                    stat:
+                      type: object
+                      properties:
+                        timeOnIce:
+                          type: string
+                          example: "862:13"
+                        assists:
+                          type: string
+                          example: 23
+                        goals:
+                          type: number
+                          example: 13
+                        pim:
+                          type: number
+                          example: 38
+                        shots:
+                          type: number
+                          example: 75
+                        games:
+                          type: number
+                          example: 47
+                        hits:
+                          type: number
+                          example: 32
+                        powerPlayGoals:
+                          type: number
+                          example: 7
+                        powerPlayPoints:
+                          type: number
+                          example: 18
+                        powerPlayTimeOnIce:
+                          type: number
+                          example: "168:28"
+                        evenTimeOnIce:
+                          type: number
+                          example: "692:50"
+                        penaltyMinutes:
+                          type: number
+                          example: "38"
+                        faceOffPct:
+                          type: number
+                          format: double
+                          example: 52.04
+                        shotPct:
+                          type: number
+                          format: float
+                          example: 17.3
+                        gameWinningGoals:
+                          type: number
+                          example: 1
+                        overTimeGoals:
+                          type: number
+                          example: 0
+                        shortHandedGoals:
+                          type: number
+                          example: 0
+                        shortHandedPoints:
+                          type: number
+                          example: 0
+                        shortHandedTimeOnIce:
+                          type: string
+                          example: "00:55"
+                        blocked:
+                          type: number
+                          example: 18
+                        plusMinus:
+                          type: number
+                          example: -9
+                        points:
+                          type: number
+                          example: 36
+                        shifts:
+                          type: number
+                          example: 1077
+                        timeOnIcePerGame:
+                          type: string
+                          example: "18:20"
+                        evenTimeOnIcePerGame:
+                          type: string
+                          example: "14:44"
+                        shortHandedTimeOnIcePerGame:
+                          type: string
+                          example: "00:01"
+                        powerPlayTimeOnIcePerGame:
+                          type: string
+                          example: "03:35"
+                        rankPowerPlayGoals:
+                          type: string
+                          example: "1st"
+                        rankBlockedShots:
+                          type: string
+                          example: "405th"
+                        rankAssists:
+                          type: string
+                          example: "51st"
+                        rankShotPct:
+                          type: string
+                          example: "246th"
+                        rankGoals:
+                          type: string
+                          example: "13th"
+                        rankHits:
+                          type: string
+                          example: "19th"
+                        rankPenaltyMinutes:
+                          type: string
+                          example: "111th"
+                        rankShortHandedGoals:
+                          type: string
+                          example: "133rd"
+                        rankPlusMinus:
+                          type: string
+                          example: "176th"
+                        rankShots:
+                          type: string
+                          example: "2nd"
+                        rankPoints:
+                          type: string
+                          example: "20th"
+                        rankOvertimeGoals:
+                          type: string
+                          example: "9th"
+                        rankGamesPlayed:
+                          type: string
+                          example: "1st"
+                        goalsInFirstPeriod:
+                          type: number
+                          example: 6
+                        goalsInSecondPeriod:
+                          type: number
+                          example: 3
+                        goalsInThirdPeriod:
+                          type: number
+                          example: 4
+                        goalsTrailingByOne:
+                          type: number
+                          example: 2
+                        goalsTrailingByTwo:
+                          type: number
+                          example: 1
+                        goalsTrailingByThreePlus:
+                          type: number
+                          example: 1
+                        goalsWhenTied:
+                          type: number
+                          example: 4
+                        goalsLeadingByOne:
+                          type: number
+                          example: 2
+                        goalsLeadingByTwo:
+                          type: number
+                          example: 3
+                    isHome:
+                      type: boolean
+                    isWin:
+                      type: boolean
+                    isOT:
+                      type: boolean
+                    month:
+                      type: number
+                      example: 1
+                    dayOfWeek:
+                      type: number
+                      example: 1
+                    opponent:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                          example: 1
+                        name:
+                          type: string
+                          example: "New Jersey Devils"
+                        link:
+                          type: string
+                          format: uri
+                          example: "/api/v1/teams/1"
+                    opponentDivision:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                          example: 16
+                        name:
+                          type: string
+                          example: "Central"
+                        link:
+                          type: string
+                          format: uri
+                          example: "/api/v1/divisions/16"
+                    opponentConference:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                          example: 5
+                        name:
+                          type: string
+                          example: "Western"
+                        link:
+                          type: string
+                          format: uri
+                          example: "/api/v1/conferences/5"
+    Roster:
+      properties:
+        person:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 8466138
+            fullName:
+              type: string
+              example: "Joe Thornton"
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/people/8466138"
+        jerseyNumber:
+          type: number
+          example: 19
+        position:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "C"
+            name:
+              type: string
+              example: "Center"
+            type:
+              type: string
+              example: "Forward"
+            abbreviation:
+              type: string
+              example: "C"
+    Rosters:
+      properties:
+        copyright:
+          type: string
+        teams:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/Roster"
+    Schedule:
+      properties:
+        copyright:
+          type: string
+        totalItems:
+          type: number
+          example: 9
+        totalEvents:
+          type: number
+          example: 0
+        totalGames:
+          type: number
+          example: 9
+        totalMatches:
+          type: number
+          example: 0
+        wait:
+          type: number
+          example: 10
+        dates:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/ScheduleDay"
+    ScheduleDay:
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2018-02-10"
+        totalItems:
+          type: number
+          example: 9
+        totalEvents:
+          type: number
+          example: 0
+        totalGames:
+          type: number
+          example: 9
+        totalMatches:
+          type: number
+          example: 0
+        games:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/ScheduleGame"
+        events:
+          type: array
+          items:
+            type: object
+        matches:
+          type: array
+          items:
+            type: object
+    ScheduleGame:
+      properties:
+        gamePk:
+          type: number
+          example: 2017020851
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/game/2017020851/feed/live"
+        gameType:
+          type: string
+          example: "R"
+        season:
+          type: string
+          example: "20172018"
+        gameDate:
+          type: string
+          format: date-time
+          example: "2018-02-11T03:00:00Z"
+        status:
+          type: object
+          properties:
+            abstractGameState:
+              type: string
+              example: "Final"
+            codedGameState:
+              type: string
+              example: "7"
+            detailedState:
+              type: string
+              example: "Final"
+            statusCode:
+              type: string
+              example: "7"
+            startTimeTBD:
+              type: boolean
+        teams:
+          type: object
+          properties:
+            away:
+              type: object
+              properties:
+                leagueRecord:
+                  type: object
+                  properties:
+                    wins:
+                      type: number
+                      example: 23
+                    losses:
+                      type: number
+                      example: 27
+                    ot:
+                      type: number
+                      example: 4
+                    type:
+                      type: string
+                      example: "league"
+                score:
+                  type: number
+                  example: 4
+                team:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 22
+                    name:
+                      type: string
+                      example: "Edmonton Oilers"
+                    link:
+                      type: string
+                      example: "/api/v1/teams/22"
+            home:
+              type: object
+              properties:
+                leagueRecord:
+                  type: object
+                  properties:
+                    wins:
+                      type: number
+                      example: 29
+                    losses:
+                      type: number
+                      example: 18
+                    ot:
+                      type: number
+                      example: 8
+                    type:
+                      type: string
+                      example: "league"
+                score:
+                  type: number
+                  example: 6
+                team:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 28
+                    name:
+                      type: string
+                      example: "San Jose Sharks"
+                    link:
+                      type: string
+                      format: uri
+                      example: "/api/v1/teams/28"
+        linescore:
+          type: object
+          $ref: "#/components/schemas/GameLinescore"
+        venue:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "SAP Center at San Jose"
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/venues/null"
+        tickets:
+          type: array
+          items:
+            type: object
+            properties:
+              ticketType:
+                type: string
+                enum:
+                  - "buysell"
+                  - "club buysell"
+                  - "club mobile"
+                  - "club mobile buysell"
+                  - "club ticket"
+                  - "mobile app ticket"
+                  - "mobile buysell"
+                  - "mobile ticket"
+                  - "tablet app ticket"
+                  - "ticket"
+              ticketLink:
+                type: string
+                format: url
+                example: "http://www.ticketmaster.com/event/090052DD92E620B4?BRAND=ducks&extcmp=tm208344&utm_source=NHL.com&utm_medium=client&utm_campaign=NHL_LEAGUE_ANA&utm_content=SCHEDULE_PAGE&camefrom=CFC_DUCKS_1718_Web_DucksSchedule"
+        content:
+          type: object
+          properties:
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/game/2017020851/content"
+    Standings:
+      properties:
+        copyright:
+          type: string
+        records:
+          type: array
+          items:
+            type: object
+            properties:
+              standingsType:
+                type: string
+                enum:
+                  - "regularSeason"
+              league:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 133
+                  name:
+                    type: string
+                    example: "National Hockey League"
+                  link:
+                    type: string
+                    format: uri
+                    example: "/api/v1/league/133"
+              division:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 15
+                  name:
+                    type: string
+                    example: "Pacific"
+                  link:
+                    type: string
+                    format: uri
+                    example: "/api/v1/divisions/15"
+              conference:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 5
+                  name:
+                    type: string
+                    example: "Western"
+                  link:
+                    type: string
+                    format: uri
+                    example: "/api/v1/conferences/5"
+              teamRecords:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    team:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                          example: 28
+                        name:
+                          type: string
+                          example: "San Jose Sharks"
+                        link:
+                          type: string
+                          format: uri
+                          example: "/api/v1/teams/28"
+                    leagueRecord:
+                      type: object
+                      properties:
+                        wins:
+                          type: number
+                          example: 29
+                        losses:
+                          type: number
+                          example: 18
+                        ot:
+                          type: number
+                          example: 8
+                        type:
+                          type: string
+                          example: "league"
+                    goalsAgainst:
+                      type: number
+                      example: 154
+                    goalsScored:
+                      type: number
+                      example: 162
+                    points:
+                      type: number
+                      example: 66
+                    divisionRank:
+                      type: string
+                      example: "2"
+                    conferenceRank:
+                      type: string
+                      example: "7"
+                    leagueRank:
+                      type: string
+                      example: "11"
+                    wildCardRank:
+                      type: string
+                      example: "0"
+                    row:
+                      type: number
+                      example: 26
+                    gamesPlayed:
+                      type: number
+                      example: 55
+                    streak:
+                      type: object
+                      properties:
+                        streakType:
+                          type: string
+                          example: "wins"
+                        streakNumber:
+                          type: number
+                          example: 1
+                        streakCode:
+                          type: string
+                          example: "W1"
+                    lastUpdated:
+                      type: string
+                      format: date-time
+                      example: "2018-02-11T00:57:18Z"
+    StandingTypes:
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            example: "regularSeason"
+          description:
+            type: string
+            example: "Regular Season Standings"
+    StatTypes:
+      items:
+        type: object
+        properties:
+          displayName:
+            type: string
+            enum:
+              - "byDayOfWeek"
+              - "byDayOfWeekPlayoffs"
+              - "byMonth"
+              - "byMonthPlayoffs"
+              - "careerPlayoffs"
+              - "careerRegularSeason"
+              - "gameLog"
+              - "goalsByGameSituation"
+              - "goalsByGameSituationPlayoffs"
+              - "homeAndAway"
+              - "homeAndAwayPlayoffs"
+              - "onPaceRegularSeason"
+              - "playoffGameLog"
+              - "playoffStatRankings"
+              - "regularSeasonStatRankings"
+              - "statsSingleSeason"
+              - "statsSingleSeasonPlayoffs"
+              - "vsConference"
+              - "vsConferencePlayoffs"
+              - "vsDivision"
+              - "vsDivisionPlayoffs"
+              - "vsTeam"
+              - "vsTeamPlayoffs"
+              - "winLoss"
+              - "winLossPlayoffs"
+              - "yearByYear"
+              - "yearByYearPlayoffs"
+              - "yearByYearPlayoffsRank"
+              - "yearByYearRank"
+    Team:
+      properties:
+        id:
+          type: number
+          example: 28
+        name:
+          type: string
+          example: "San Jose Sharks"
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/teams/28"
+        venue:
+          $ref: "#/components/schemas/Venue"
+        abbreviation:
+          type: string
+          example: "SJS"
+        triCode:
+          type: string
+          example: "SJS"
+        teamName:
+          type: string
+          example: "Sharks"
+        locationName:
+          type: string
+          example: "San Jose"
+        firstYearOfPlay:
+          type: number
+          example: 1990
+        division:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 15
+            name:
+              type: string
+              example: "Pacific"
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/divisions/15"
+        conference:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 5
+            name:
+              type: string
+              example: "Western"
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/conferences/5"
+        franchise:
+          $ref: "#/components/schemas/Franchise"
+        roster:
+          type: object
+          properties:
+            roster:
+              type: array
+              items:
+                $ref: "#/components/schemas/Roster"
+        nextGameSchedule:
+          type: object
+          properties:
+            totalItems:
+              type: number
+              example: 1
+            totalEvents:
+              type: number
+              example: 0
+            totalGames:
+              type: number
+              example: 1
+            totalMatches:
+              type: number
+              example: 0
+            dates:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    example: "2018-02-10"
+                  totalItems:
+                    type: number
+                    example: 1
+                  totalEvents:
+                    type: number
+                    example: 0
+                  totalGames:
+                    type: number
+                    example: 1
+                  totalMatches:
+                    type: number
+                    example: 0
+                  games:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        gamePk:
+                          type: number
+                          example: 2017020851
+                        link:
+                          type: string
+                          format: uri
+                          example: "/api/v1/game/2017020851/feed/live"
+                        gameType:
+                          type: string
+                          example: "R"
+                        season:
+                          type: string
+                          example: "20172018"
+                        gameDate:
+                          type: string
+                          format: date-time
+                          example: "2018-02-11T03:00:00Z"
+                        status:
+                          type: object
+                          properties:
+                            abstractGameState:
+                              type: string
+                              enum:
+                                - "Live"
+                                - "Preview"
+                            codedGameState:
+                              type: string
+                              enum:
+                                - "2"
+                                - "3"
+                              example: "3"
+                            detailedState:
+                              type: string
+                              enum:
+                                - "In Progress"
+                                - "Pre-Game"
+                            statusCode:
+                              type: string
+                              enum:
+                                - "2"
+                                - "3"
+                            startTimeTBD:
+                              type: boolean
+                        teams:
+                          type: object
+                          properties:
+                            away:
+                              type: object
+                              properties:
+                                leagueRecord:
+                                  type: object
+                                  properties:
+                                    wins:
+                                      type: number
+                                      example: 23
+                                    losses:
+                                      type: number
+                                      example: 26
+                                    ot:
+                                      type: number
+                                      example: 4
+                                    type:
+                                      type: string
+                                      example: "league"
+                                score:
+                                  type: number
+                                  example: 0
+                                team:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: number
+                                      example: 22
+                                    name:
+                                      type: string
+                                      example: "Edmonton Oilers"
+                                    link:
+                                      type: string
+                                      format: uri
+                                      example: "/api/v1/teams/22"
+                            home:
+                              type: object
+                              properties:
+                                leagueRecord:
+                                  type: object
+                                  properties:
+                                    wins:
+                                      type: number
+                                      example: 28
+                                    losses:
+                                      type: number
+                                      example: 18
+                                    ot:
+                                      type: number
+                                      example: 8
+                                    type:
+                                      type: string
+                                      example: "league"
+                                score:
+                                  type: number
+                                  example: 2
+                                team:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: number
+                                      example: 28
+                                    name:
+                                      type: string
+                                      example: "San Jose Sharks"
+                                    link:
+                                      type: string
+                                      format: uri
+                                      example: "/api/v1/teams/28"
+                        venue:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: "SAP Center at San Jose"
+                            link:
+                              type: string
+                              format: uri
+                              example: "/api/v1/venues/null"
+                        content:
+                          type: object
+                          properties:
+                            link:
+                              type: string
+                              format: uri
+                              example: "/api/v1/game/2017020851/content"
+                  events:
+                    type: array
+                    items:
+                      type: object
+                  matches:
+                    type: array
+                    items:
+                      type: object
+        shortName:
+          type: string
+          example: "San Jose"
+        officialSiteUrl:
+          type: string
+          format: url
+          example: "http://www.sjsharks.com"
+        franchiseId:
+          type: number
+          example: 29
+        active:
+          type: boolean
+    Teams:
+      properties:
+        copyright:
+          type: string
+        teams:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/Team"
+    TeamStats:
+      properties:
+        copyright:
+          type: string
+        stats:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: object
+                properties:
+                  displayName:
+                    type: string
+                    example: "statsSingleSeason"
+              splits:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    stat:
+                      type: object
+                      properties:
+                        gamesPlayed:
+                          type: number
+                          example: 55
+                        wins:
+                          type: number
+                          example: 29
+                        losses:
+                          type: number
+                          example: 18
+                        ot:
+                          type: number
+                          example: 8
+                        pts:
+                          type: number
+                          example: 66
+                        ptPctg:
+                          type: string
+                          example: "60.0"
+                        goalsPerGame:
+                          type: number
+                          format: float
+                          example: 2.891
+                        goalsAgainstPerGame:
+                          type: number
+                          format: float
+                          example: 2.745
+                        evGGARatio:
+                          type: number
+                          format: float
+                          example: 0.8532
+                        powerPlayPercentage:
+                          type: string
+                          example: "23.9"
+                        powerPlayGoals:
+                          type: number
+                          example: 44
+                        powerPlayGoalsAgainst:
+                          type: number
+                          example: 26
+                        powerPlayOpportunities:
+                          type: number
+                          example: 184
+                        penaltyKillPercentage:
+                          type: string
+                          example: "84.6"
+                        shotsPerGame:
+                          type: number
+                          format: float
+                          example: 32.8
+                        shotsAllowed:
+                          type: number
+                          format: float
+                          example: 30.2182
+                        winScoreFirst:
+                          type: number
+                          format: float
+                          example: 0.679
+                        winOppScoreFirst:
+                          type: number
+                          format: float
+                          example: 0.37
+                        winLeadFirstPer:
+                          type: number
+                          format: float
+                          example: 0.85
+                        winLeadSecondPer:
+                          type: number
+                          format: float
+                          example: 0.952
+                        winOutshootOpp:
+                          type: number
+                          format: float
+                          example: 0.467
+                        winOutshotByOpp:
+                          type: number
+                          format: float
+                          example: 0.6
+                        faceOffsTaken:
+                          type: number
+                          example: 3300
+                        faceOffsWon:
+                          type: number
+                          example: 1675
+                        faceOffsLost:
+                          type: number
+                          example: 1625
+                        faceOffWinPercentage:
+                          type: string
+                          example: "50.8"
+                        shootingPctg:
+                          type: number
+                          format: float
+                          example: 8.8
+                        savePctg:
+                          type: number
+                          format: float
+                          example: 0.909
+                    team:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                          example: 28
+                        name:
+                          type: string
+                          example: "San Jose Sharks"
+                        link:
+                          type: string
+                          format: uri
+                          example: "/api/v1/teams/28"
+    Venue:
+      properties:
+        name:
+          type: string
+          example: "SAP Center at San Jose"
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/venues/null"
+        city:
+          type: string
+          example: "San Jose"
+        timeZone:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "America/Los_Angeles"
+            offset:
+              type: number
+              example: -8
+            tz:
+              type: string
+              example: "PST"
