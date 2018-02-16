@@ -382,6 +382,23 @@ paths:
       operationId: getStandings
       tags:
         - standings
+      parameters:
+        - name: season
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "20032004"
+          description: "Standings for a specified season."
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2018-01-09"
+          description: "Standings on a specified date."
       responses:
         200:
           description: OK
