@@ -1,0 +1,146 @@
+openapi: "3.0.0"
+info:
+  title: MLB API
+  version: "1.0.0"
+  description: Documenting the publicly accessible portions of the MLB API.
+  contact:
+    name: MLB API documentation
+    url: https://github.com/erunion/sport-api-specifications
+tags:
+  - name: conference
+servers:
+  - url: http://statsapi.mlb.com/api/v1
+paths:
+  /conferences:
+    get:
+      summary: Get all current MLB conferences.
+      description: Amusingly enough, this also returns NHL conferences.
+      operationId: getConferences
+      tags:
+        - conferences
+      parameters:
+        - name: conferenceId
+          in: query
+          required: false
+          description: The ID of a conference. You can send multiples of this query parameter to return multiple conferences.
+          schema:
+            type: integer
+            example: 301
+        - name: season
+          in: query
+          required: false
+          description: A year to return conferences for. Note, this does not seem to function.
+          schema:
+            type: string
+        - name: includeInactive
+          in: query
+          required: false
+          description: Include inactive conferences. Note, this does not seem to function.
+          schema:
+            type: boolean
+        - name: fields
+          in: query
+          required: false
+          description: Fields. Note, this does not seem to function.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conferences"
+        404:
+          $ref: "#/components/responses/Error"
+  /conferences/{id}:
+    get:
+      summary: Get an MLB conference.
+      operationId: getConference
+      tags:
+        - conferences
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of a conference.
+          schema:
+            type: integer
+            example: 301
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conferences"
+        404:
+          $ref: "#/components/responses/Error"
+components:
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Conference:
+      properties:
+        id:
+          type: number
+          example: 301
+        name:
+          type: string
+          example: "PCL American Conference"
+        link:
+          type: string
+          format: uri
+          example: "/api/v1/conferences/301"
+        abbreviation:
+          type: string
+          example: "PCLA"
+        hasWildcard:
+          type: boolean
+        league:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 112
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/league/112"
+        sport:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 11
+            link:
+              type: string
+              format: uri
+              example: "/api/v1/sports/11"
+        nameShort:
+          type: string
+          example: "PCL American"
+    Conferences:
+      properties:
+        copyright:
+          type: string
+        conferences:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/Conference"
+    Error:
+      properties:
+        messageNumber:
+          type: number
+          example: 10
+        message:
+          type: string
+          example: "Object not found"
