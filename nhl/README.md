@@ -4,6 +4,10 @@ This provides an [OpenAPI 3.0](https://swagger.io/docs/specification/about/) spe
 
 The bulk of this API has been discovered through [@dword4](https://github.com/dword4) and their [nhlapi](https://github.com/dword4/nhlapi) documentation.
 
+## Copyright
+
+> NHL and the NHL Shield are registered trademarks of the National Hockey League. NHL and NHL team marks are the property of the NHL and its teams. © NHL 2018. All Rights Reserved.
+
 ## Available endpoints
 
 | Endpoint | Description |
