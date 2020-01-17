@@ -652,7 +652,6 @@ components:
         teams:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/Conference"
     Division:
       properties:
@@ -691,7 +690,6 @@ components:
         teams:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/Division"
     Draft:
       properties:
@@ -849,7 +847,6 @@ components:
         prospects:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/DraftProspect"
     Error:
       properties:
@@ -938,13 +935,10 @@ components:
               type: object
               properties:
                 away:
-                  type: object
                   $ref: "#/components/schemas/Team"
                 home:
-                  type: object
                   $ref: "#/components/schemas/Team"
             players: # this is actually an associative array with keys like `ID8471709`
-              type: object
               $ref: "#/components/schemas/Player"
             venue:
               type: object
@@ -965,7 +959,6 @@ components:
                 allPlays:
                   type: array
                   items:
-                    type: object
                     $ref: "#/components/schemas/GamePlay"
                 scoringPlays:
                   type: array
@@ -991,31 +984,23 @@ components:
                         type: number
                         example: 114
                 currentPlay:
-                  type: object
                   $ref: "#/components/schemas/GamePlay"
             linescore:
-              type: object
               $ref: "#/components/schemas/GameLinescore"
             boxscore:
-              type: object
               $ref: "#/components/schemas/GameBoxscore"
             decisions:
               type: object
               properties:
                 winner:
-                  type: object
                   $ref: "#/components/schemas/GameDecisionPlayer"
                 loser:
-                  type: object
                   $ref: "#/components/schemas/GameDecisionPlayer"
                 firstStar:
-                  type: object
                   $ref: "#/components/schemas/GameDecisionPlayer"
                 secondStar:
-                  type: object
                   $ref: "#/components/schemas/GameDecisionPlayer"
                 thirdStar:
-                  type: object
                   $ref: "#/components/schemas/GameDecisionPlayer"
     GameBoxscore:
       properties:
@@ -1023,10 +1008,8 @@ components:
           type: object
           properties:
             away:
-              type: object
               $ref: "#/components/schemas/GameBoxscoreTeam"
             home:
-              type: object
               $ref: "#/components/schemas/GameBoxscoreTeam"
         officials:
           type: array
@@ -1278,13 +1261,10 @@ components:
           type: object
           properties:
             preview:
-              type: object
               $ref: "#/components/schemas/GameEditorials"
             articles:
-              type: object
               $ref: "#/components/schemas/GameEditorials"
             recap:
-              type: object
               $ref: "#/components/schemas/GameEditorials"
         media:
           type: object
@@ -1354,16 +1334,13 @@ components:
                         type: string
                         example: "1st"
                       highlight:
-                        type: object
                         $ref: "#/components/schemas/GameHighlight"
         highlights:
           type: object
           properties:
             scoreboard:
-              type: object
               $ref: "#/components/schemas/GameHighlights"
             gameCenter:
-              type: object
               $ref: "#/components/schemas/GameHighlights"
     GameEditorial:
       properties:
@@ -1450,12 +1427,10 @@ components:
         keywordsDisplay:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/GameEditorialKeyword"
         keywordsAll:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/GameEditorialKeyword"
         approval:
           type: string
@@ -1466,7 +1441,6 @@ components:
           type: string
           example: "/nhl/id/v1/295823824/details/web-v1.json"
         primaryKeyword:
-          type: object
           $ref: "#/components/schemas/GameEditorialKeyword"
         media:
           type: object
@@ -1475,7 +1449,6 @@ components:
               type: string
               example: "photo"
             image:
-              type: object
               $ref: "#/components/schemas/Photo"
         preview:
           type: string
@@ -1517,7 +1490,6 @@ components:
         items:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/GameEditorial"
     GameHighlight:
       properties:
@@ -1555,10 +1527,8 @@ components:
         keywords:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/GameEditorialKeyword"
         image:
-          type: object
           $ref: "#/components/schemas/Photo"
         playbacks:
           type: array
@@ -1591,10 +1561,8 @@ components:
     GameHighlights:
       properties:
         scoreboard:
-          type: object
           $ref: "#/components/schemas/GameHighlightType"
         gameCenter:
-          type: object
           $ref: "#/components/schemas/GameHighlightType"
     GameHighlightType:
       properties:
@@ -1607,7 +1575,6 @@ components:
         items:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/GameHighlight"
     GamePeriod:
       properties:
@@ -1678,7 +1645,6 @@ components:
         periods:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/GamePeriod"
         shootoutInfo:
           type: object
@@ -1705,10 +1671,8 @@ components:
           type: object
           properties:
             home:
-              type: object
               $ref: "#/components/schemas/GameLinescoreTeam"
             away:
-              type: object
               $ref: "#/components/schemas/GameLinescoreTeam"
         powerPlayStrength:
           type: string
@@ -2095,7 +2059,6 @@ components:
         teams:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/Player"
     PlayerStats:
       properties:
@@ -2374,7 +2337,6 @@ components:
         teams:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/Roster"
     Schedule:
       properties:
@@ -2398,7 +2360,6 @@ components:
         dates:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/ScheduleDay"
     ScheduleDay:
       properties:
@@ -2421,7 +2382,6 @@ components:
         games:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/ScheduleGame"
         events:
           type: array
@@ -2538,7 +2498,6 @@ components:
                       format: uri
                       example: "/api/v1/teams/28"
         linescore:
-          type: object
           $ref: "#/components/schemas/GameLinescore"
         venue:
           type: object
@@ -3016,7 +2975,6 @@ components:
         teams:
           type: array
           items:
-            type: object
             $ref: "#/components/schemas/Team"
     TeamStats:
       properties:
